@@ -1,9 +1,14 @@
 import streamlit as st
-import pickle
 import requests
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-movies=pickle.load(open('movies_list.pkl','rb'))
-similarity=pickle.load(open('similarity.pkl','rb'))
+movies = pd.read_csv("movies.csv")
+movies['tags'] = movies['overview']
+cv = CountVectorizer(max_features=5000, stop_words='english')
+vectors = cv.fit_transform(movies['tags'].fillna('')).toarray()
+similarity = cosine_similarity(vectors)
 
 def fetch_poster(movie_id):
     api_key = st.secrets["TMDB_API_KEY"]
@@ -14,16 +19,19 @@ def fetch_poster(movie_id):
     full_path="https://image.tmdb.org/t/p/w500/"+poster_path
     return full_path
 def recommend(movie):
-    index=movies[movies['title']==movie].index[0]
-    distances=sorted(list(enumerate(similarity[index])),key=lambda x:x[1],reverse=True)
-    recommended_movie_names=[]
-    recommended_movie_posters=[]
-   #We want to get 5 movies
-    for i in distances[1:6]:
-        movie_id=movies.iloc[i[0]].movie_id
-        recommended_movie_names.append(movies.iloc[i[0]].title)
-        recommended_movie_posters.append(fetch_poster(movie_id))
-    return recommended_movie_names,recommended_movie_posters
+    index = movies[movies['title'] == movie].index[0]
+    distances = similarity[index]
+    movie_list = sorted(
+        list(enumerate(distances)),
+        reverse=True,
+        key=lambda x: x[1]
+    )[1:6]
+
+    recommendations = []
+    for i in movie_list:
+        recommendations.append(movies.iloc[i[0]].title)
+
+    return recommendations
 st.header("Movie Recommender System")
 movie_list=movies['title'].values
 selected_movie = st.selectbox("Type or select a movie from the dropdown",movie_list,index=None)
