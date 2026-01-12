@@ -12,28 +12,38 @@ cv = CountVectorizer(max_features=5000, stop_words='english')
 vectors = cv.fit_transform(movies['tags'].fillna('')).toarray()
 similarity = cosine_similarity(vectors)
 
-def fetch_poster(movie_id):
+def fetch_poster(imdb_id):
     api_key = st.secrets["TMDB_API_KEY"]
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}&language=en-US"
-    data=requests.get(url)
-    data=data.json()
-    poster_path=data['poster_path']
-    full_path="https://image.tmdb.org/t/p/w500/"+poster_path
-    return full_path
+
+    # Convert IMDB ID → TMDB ID
+    find_url = f"https://api.themoviedb.org/3/find/{imdb_id}?api_key={api_key}&external_source=imdb_id"
+    data = requests.get(find_url).json()
+
+    if data['movie_results']:
+        poster_path = data['movie_results'][0]['poster_path']
+        return "https://image.tmdb.org/t/p/w500/" + poster_path
+
+    return None
+
 def recommend(movie):
     index = movies[movies['original_title'] == movie].index[0]
     distances = similarity[index]
+
     movie_list = sorted(
         list(enumerate(distances)),
         reverse=True,
         key=lambda x: x[1]
     )[1:6]
 
-    recommendations = []
-    for i in movie_list:
-        recommendations.append(movies.iloc[i[0]].title)
+    recommended_movie_names = []
+    recommended_movie_posters = []
 
-    return recommendations
+    for i in movie_list:
+        movie_id = movies.iloc[i[0]]['imdb_id']
+        recommended_movie_names.append(movies.iloc[i[0]]['original_title'])
+        recommended_movie_posters.append(fetch_poster(movie_id))
+
+    return recommended_movie_names, recommended_movie_posters
 st.header("Movie Recommender System")
 movie_list=movies['original_title'].values
 selected_movie = st.selectbox("Type or select a movie from the dropdown",movie_list,index=None)
