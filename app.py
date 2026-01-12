@@ -11,19 +11,21 @@ movies['tags'] = movies['summary'].fillna('') + ' ' + movies['genres'].fillna(''
 cv = CountVectorizer(max_features=5000, stop_words='english')
 vectors = cv.fit_transform(movies['tags'].fillna('')).toarray()
 similarity = cosine_similarity(vectors)
+def fetch_poster(movie_id):
+    return "https://via.placeholder.com/300x450?text=Poster+Unavailable"
 
-def fetch_poster(imdb_id):
-    api_key = st.secrets["TMDB_API_KEY"]
+#def fetch_poster(imdb_id):
+#   api_key = st.secrets["TMDB_API_KEY"]
 
     # Convert IMDB ID → TMDB ID
-    find_url = f"https://api.themoviedb.org/3/find/{imdb_id}?api_key={api_key}&external_source=imdb_id"
-    data = requests.get(find_url).json()
+ #   find_url = f"https://api.themoviedb.org/3/find/{imdb_id}?api_key={api_key}&external_source=imdb_id"
+  #  data = requests.get(find_url).json()
 
-    if data['movie_results']:
-        poster_path = data['movie_results'][0]['poster_path']
-        return "https://image.tmdb.org/t/p/w500/" + poster_path
+   # if data['movie_results']:
+    #    poster_path = data['movie_results'][0]['poster_path']
+     #   return "https://image.tmdb.org/t/p/w500/" + poster_path
 
-    return None
+#    return None
 
 def recommend(movie):
     index = movies[movies['original_title'] == movie].index[0]
