@@ -35,7 +35,7 @@ def recommend(movie):
 
     return recommendations
 st.header("Movie Recommender System")
-movie_list=movies['title'].values
+movie_list=movies['original_title'].values
 selected_movie = st.selectbox("Type or select a movie from the dropdown",movie_list,index=None)
 
 if st.button("Show Recommendations"):
