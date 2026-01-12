@@ -6,8 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 movies = pd.read_csv("movies.csv")
 st.write(movies.columns)
-movies['tagline'] = movies['overview']
-movies['tagline'] = movies['tagline'].fillna('')
+movies['tags'] = movies['summary'].fillna('') + ' ' + movies['genres'].fillna('')
 
 cv = CountVectorizer(max_features=5000, stop_words='english')
 vectors = cv.fit_transform(movies['tags'].fillna('')).toarray()
